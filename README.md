@@ -44,5 +44,5 @@ The dashboard categorizes load status as:
 ├── .env              # Environment variables (Hidden)
 └── package.json      # Node dependencies
 
-
-
+👨‍💻 Author
+Sweet-Kamble Final Year EnTC Engineering Student AISSMS Institute of Information Technology, Pune Quality Engineer | Microsoft Certified: Azure Fundamentals (AZ-900)
