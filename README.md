@@ -35,12 +35,11 @@ The dashboard categorizes load status as:
 
 ## 📂 Project Structure
 ```text
-├── models/           # Mongoose schemas (User, SensorData, Complaint)
-├── public/           # Frontend assets (HTML, CSS, JS)
-│   ├── energy.html   # Analytics dashboard
-│   ├── alerts.html   # Safety & Diagnostics
-│   └── dashboard.html# Main control hub
-├── routes/           # API endpoints (Auth, Sensors, Admin)
+├── models/            # Mongoose schemas (User, SensorData, Complaint)
+├── public/            # Frontend assets (HTML, CSS, JS)
+│   ├── energy.html    # Analytics dashboard
+│   ├── alerts.html    # Safety & Diagnostics
+│   └── dashboard.html # Main control hub
 ├── server.js         # Express server & MongoDB connection
 ├── .env              # Environment variables (Hidden)
 └── package.json      # Node dependencies
