@@ -32,6 +32,9 @@ The dashboard categorizes load status as:
 1.  **Gas Leakage:** If the MQ-2 sensor detects LPG/Smoke levels above the threshold, the system automatically triggers an "AI Protocol" forcing all high-voltage relays OFF.
 2.  **Overcurrent:** The system monitors total amperage and alerts the user if the hardware load exceeds 3.0A to prevent circuit failure.
 
+## 👨‍💻 Author
+Sweet-Kamble Final Year EnTC Engineering Student AISSMS Institute of Information Technology, Pune Quality Engineer | Microsoft Certified: Azure Fundamentals (AZ-900)
+
 ## 📂 Project Structure
 ```text
 ├── models/           # Mongoose schemas (User, SensorData, Complaint)
@@ -44,5 +47,4 @@ The dashboard categorizes load status as:
 ├── .env              # Environment variables (Hidden)
 └── package.json      # Node dependencies
 
-👨‍💻 Author
-Sweet-Kamble Final Year EnTC Engineering Student AISSMS Institute of Information Technology, Pune Quality Engineer | Microsoft Certified: Azure Fundamentals (AZ-900)
+
