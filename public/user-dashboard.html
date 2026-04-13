@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartHome - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --bg-sidebar: #2c4c4c; --bg-dark: #1a4d4d; --active-teal: #3a5f5f; --body-bg: #f4f7f7; --text-main: #1a4d4d; --sidebar-width: 260px; --sidebar-collapsed: 75px; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; background: var(--body-bg); overflow: hidden; }
+        aside { width: var(--sidebar-width); background: var(--bg-sidebar); color: white; display: flex; flex-direction: column; transition: 0.3s ease; z-index: 100; }
+        aside.collapsed { width: var(--sidebar-collapsed); }
+        .sidebar-header { padding: 20px; background: var(--bg-dark); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .logo { font-weight: bold; font-size: 19px; white-space: nowrap; color: #ffffff; display: flex; align-items: center; }
+        .toggle-btn { background: none; border: none; color: white; cursor: pointer; font-size: 18px; padding: 5px; }
+        .nav-links { flex: 1; padding-top: 20px; }
+        aside a { display: flex; align-items: center; padding: 15px 25px; color: #cbdada; text-decoration: none; cursor: pointer; border-left: 4px solid transparent; transition: 0.2s; }
+        aside a i { width: 25px; font-size: 18px; }
+        aside a:hover, aside a.active { background: var(--active-teal); color: white; border-left-color: #5cb8b8; }
+        aside.collapsed .logo-text, aside.collapsed .link-text, aside.collapsed .logout-text { display: none; }
+        aside.collapsed a { justify-content: center; padding: 15px 0; border: none; }
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .top-header { background: white; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); z-index: 90; }
+        .user-profile { display: flex; align-items: center; gap: 12px; color: var(--text-main); font-weight: 600; }
+        .profile-pic { width: 38px; height: 38px; background: var(--bg-dark); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; border: 2px solid #eee; }
+        main { flex: 1; padding: 30px 40px; overflow-y: auto; }
+        .logout-btn { margin: 20px; padding: 10px; border: 1px solid #ff7675; color: #ff7675; border-radius: 4px; text-align: center; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .logout-btn:hover { background: #ff7675; color: white; }
+    </style>
+</head>
+<body>
+    <aside id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo"><span class="logo-text">⌂ SmartHome</span></div>
+            <button class="toggle-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+        </div>
+        <nav class="nav-links">
+            <a onclick="loadPage('dashboard-summary.html', this)" class="side-link active"><i class="fas fa-th-large"></i> <span class="link-text">Dashboard</span></a>
+            <a onclick="loadPage('devices.html', this)" class="side-link"><i class="fas fa-lightbulb"></i> <span class="link-text">Devices</span></a>
+            <a onclick="loadPage('energy.html', this)" class="side-link"><i class="fas fa-bolt"></i> <span class="link-text">Energy</span></a>
+            <a onclick="loadPage('alerts.html', this)" class="side-link"><i class="fas fa-bell"></i> <span class="link-text">Alerts</span></a>
+            <a onclick="loadPage('support.html', this)" class="side-link"><i class="fas fa-headset"></i> <span class="link-text">Support</span></a>
+        </nav>
+        <div class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> <span class="logout-text">Logout</span></div>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="top-header">
+            <div style="color: #666; font-size: 14px;">Resident / <b id="current-page-name" style="color: var(--text-main);">Dashboard</b></div>
+            <div class="user-profile">
+                <div style="text-align: right;">
+                    <div id="header-user-name" style="font-size: 15px;">Loading...</div>
+                    <div id="header-user-email" style="font-size: 11px; color: #888; font-weight: 400;">Syncing Profile...</div>
+                </div>
+                <div class="profile-pic"><i class="fas fa-user"></i></div>
+            </div>
+        </header>
+        <main id="content-area"></main>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = "login.html";
+
+        async function fetchUserProfile() {
+            try {
+                const res = await fetch(`${API_BASE}/user/profile`, { headers: { 'x-auth-token': token } });
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('header-user-name').innerText = data.fullName;
+                    document.getElementById('header-user-email').innerText = data.email;
+                } else if (res.status === 401) logout();
+            } catch (err) { console.error("Profile sync failed."); }
+        }
+
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
+
+        async function loadPage(url, element) {
+            // Clean up background timers to prevent memory leaks and "null" selection errors
+            let id = window.setInterval(null, 0); while (id--) { window.clearInterval(id); }
+
+            document.querySelectorAll('.side-link').forEach(l => l.classList.remove('active'));
+            if(element) {
+                element.classList.add('active');
+                document.getElementById('current-page-name').innerText = element.querySelector('.link-text').innerText;
+            }
+            
+            try {
+                const res = await fetch(url);
+                const html = await res.text();
+                document.getElementById('content-area').innerHTML = html;
+                
+                // Re-inject scripts into the DOM to force execution for animations/charts
+                const scripts = document.getElementById('content-area').querySelectorAll('script');
+                scripts.forEach(oldScript => { 
+                    const newScript = document.createElement('script');
+                    newScript.text = oldScript.text;
+                    document.body.appendChild(newScript).parentNode.removeChild(newScript); 
+                });
+            } catch (e) { document.getElementById('content-area').innerHTML = "<h3>Error loading component.</h3>"; }
+        }
+
+        function logout() { localStorage.clear(); window.location.href = "login.html"; }
+
+        window.onload = () => { fetchUserProfile(); loadPage('dashboard-summary.html', document.querySelector('.side-link')); };
+    </script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<div class="header-bar" style="margin-bottom: 25px;">
+    <h2 style="color: #1a4d4d; margin: 0;">System Diagnostics & Safety</h2>
+    <p style="color: #666; font-size: 14px;">Monitoring IoT protocols, gas sensors, and resident support history.</p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+    
+    <div class="page-content" style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <h3 style="color: #1a4d4d; margin-top: 0; border-bottom: 2px solid #f4f7f7; padding-bottom: 15px; font-size: 18px;">
+            <i class="fas fa-microchip" style="color: #3498db;"></i> Sensor Health Check
+        </h3>
+        <div id="sensorHealthList" style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="text-align: center; padding: 20px; color: #999;"><i class="fas fa-spinner fa-spin"></i> Running Diagnostics...</div>
+        </div>
+    </div>
+
+    <div class="page-content" style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <h3 style="color: #1a4d4d; margin-top: 0; border-bottom: 2px solid #f4f7f7; padding-bottom: 15px; font-size: 18px;">
+            <i class="fas fa-network-wired" style="color: #2ecc71;"></i> System Heartbeat
+        </h3>
+        <div id="connectionStatus" style="font-size: 14px;">
+            <div style="padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: #666;">Database Sync:</span> 
+                <span style="background: #eafaf1; color: #27ae60; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">CONNECTED</span>
+            </div>
+            <div style="padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: #666;">Last System Ping:</span> 
+                <b id="lastDeviceConnect" style="color: #1a4d4d; font-size: 12px;">Syncing...</b>
+            </div>
+            <div style="padding: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: #666;">Last Gas Alert:</span> 
+                <b id="lastGasAlert" style="font-size: 12px;">Checking...</b>
+            </div>
+        </div>
+    </div>
+
+    <div class="page-content" style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); grid-column: 1 / -1;">
+        <h3 style="color: #1a4d4d; margin-top: 0; border-bottom: 2px solid #f4f7f7; padding-bottom: 15px; font-size: 18px;">
+            <i class="fas fa-ticket-alt" style="color: #d35400;"></i> Support Ticket History
+        </h3>
+        <div id="userTicketList" style="max-height: 300px; overflow-y: auto;">
+            <p style="text-align: center; color: #999; padding: 20px;">Retrieving ticket status from Atlas...</p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    /**
+     * Diagnostic Logic: Validates if sensors are pushing data to Atlas
+     */
+    async function checkSensorHealth() {
+        const token = localStorage.getItem('token');
+        try {
+            const res = await fetch('http://localhost:5000/api/sensors/data', {
+                headers: { 'x-auth-token': token }
+            });
+            const data = await res.json();
+            const healthList = document.getElementById('sensorHealthList');
+            
+            // Sensor mapping based on your hardware configuration
+            const sensors = [
+                { name: 'Current Sensors (V5-V8)', status: data.current1 !== undefined },
+                { name: 'DHT11 Temp/Humid (V10/V11)', status: data.temperature !== 0 },
+                { name: 'MQ-2 Gas Sensor (V14)', status: data.gasStatus !== undefined },
+                { name: 'PIR Motion Sensor (V13)', status: data.motion !== undefined }
+            ];
+
+            healthList.innerHTML = sensors.map(s => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid ${s.status ? '#27ae60' : '#e74c3c'};">
+                    <span style="font-size: 13px; color: #333; font-weight: 500;">${s.name}</span>
+                    <span style="font-size: 10px; font-weight: bold; color: ${s.status ? '#27ae60' : '#e74c3c'};">
+                        <i class="fas ${s.status ? 'fa-check-circle' : 'fa-times-circle'}"></i> ${s.status ? 'FUNCTIONAL' : 'OFFLINE'}
+                    </span>
+                </div>
+            `).join('');
+
+            // Update Gas Alert Status
+            const gasLabel = document.getElementById('lastGasAlert');
+            if (data.gasStatus === "LEAKAGE!") {
+                gasLabel.innerText = "🚨 LEAKAGE DETECTED";
+                gasLabel.style.color = "#e74c3c";
+            } else {
+                gasLabel.innerText = "✅ SAFE / NO LEAK";
+                gasLabel.style.color = "#27ae60";
+            }
+
+        } catch (e) { console.error("Health Check Failure"); }
+    }
+
+    /**
+     * System Activity: Fetches last known interaction from User profile [cite: 1]
+     */
+    async function fetchSystemActivity() {
+        try {
+            const res = await fetch('http://localhost:5000/api/user/profile', {
+                headers: { 'x-auth-token': localStorage.getItem('token') }
+            });
+            const data = await res.json();
+            if (data.lastLogin) {
+                document.getElementById('lastDeviceConnect').innerText = new Date(data.lastLogin).toLocaleString('en-IN');
+            }
+        } catch (e) { console.error("Activity Sync Failure"); }
+    }
+
+    /**
+     * Support Tracking: Corrected to display ticket status (Pending/Resolved)
+     */
+    async function fetchTicketStatus() {
+        const list = document.getElementById('userTicketList');
+        try {
+            const res = await fetch('http://localhost:5000/api/admin/complaints', {
+                headers: { 'x-auth-token': localStorage.getItem('token') }
+            });
+            const tickets = await res.json();
+
+            if (tickets && tickets.length > 0) {
+                list.innerHTML = tickets.map(t => `
+                    <div style="padding: 15px; border-bottom: 1px solid #f4f7f7; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 600; color: #1a4d4d; font-size: 14px;">${t.subject}</div>
+                            <small style="color: #999;">Reference ID: ${t._id.substring(18)} | ${new Date(t.createdAt).toLocaleDateString('en-IN')}</small>
+                        </div>
+                        <span style="font-size: 10px; font-weight: bold; padding: 5px 12px; border-radius: 20px; text-transform: uppercase; 
+                            background: ${t.status === 'resolved' ? '#eafaf1' : '#fff5f5'}; 
+                            color: ${t.status === 'resolved' ? '#27ae60' : '#e74c3c'}; border: 1px solid ${t.status === 'resolved' ? '#c6f6d5' : '#fed7d7'};">
+                            ${t.status || 'PENDING'}
+                        </span>
+                    </div>
+                `).join('');
+            } else {
+                list.innerHTML = '<div style="text-align:center; color:#a0aec0; padding:40px; font-size: 14px;">No support history found in your account.</div>';
+            }
+        } catch (e) { 
+            console.error("Ticket Sync Failure");
+            list.innerHTML = '<div style="text-align:center; color:#e74c3c; padding:20px;">Support Service Temporarily Unavailable.</div>';
+        }
+    }
+
+    // Initial Dashboard Execution
+    checkSensorHealth();
+    fetchSystemActivity();
+    fetchTicketStatus();
+
+    // Refresh sensor health and activity every 10 seconds for real-time monitoring
+    setInterval(() => {
+        checkSensorHealth();
+        fetchSystemActivity();
+    }, 10000);
+</script>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartHome - IoT Energy Gateway</title>
+    <style>
+        :root {
+            --bg-color: #1a4d4d;
+            --primary-teal: #215151;
+            --button-hover: #2c6b6b;
+            --accent-gold: #ffd700;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: white;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .gateway-card {
+            background: var(--card-bg);
+            padding: 50px 40px;
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            color: #333;
+        }
+
+        /* Clickable Logo Section */
+        .logo-section {
+            margin-bottom: 30px;
+            display: inline-block;
+        }
+
+        .logo-link {
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            background-color: var(--primary-teal);
+            color: white;
+            width: 60px;
+            height: 60px;
+            line-height: 60px;
+            border-radius: 12px;
+            font-size: 30px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .logo-link:hover .logo-icon {
+            transform: scale(1.05);
+            background-color: var(--button-hover);
+        }
+
+        h1 { 
+            font-size: 26px; 
+            margin: 10px 0 5px; 
+            color: var(--primary-teal); 
+            font-weight: 600; 
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 35px;
+            line-height: 1.4;
+        }
+
+        /* Button Group Logic */
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 14px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: block;
+            border: 2px solid var(--primary-teal);
+        }
+
+        /* 1. Admin Portal - Distinct Style */
+        .btn-admin {
+            background-color: #f0f4f4;
+            color: var(--primary-teal);
+            border-color: var(--primary-teal);
+        }
+        .btn-admin:hover {
+            background-color: #e0eaea;
+            transform: translateY(-2px);
+        }
+
+        /* 2. User Login - Primary Action */
+        .btn-login {
+            background-color: var(--primary-teal);
+            color: white;
+        }
+        .btn-login:hover {
+            background-color: var(--button-hover);
+            border-color: var(--button-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(33, 81, 81, 0.3);
+        }
+
+        /* 3. New Registration - Secondary Action */
+        .btn-signup {
+            background-color: transparent;
+            color: var(--primary-teal);
+        }
+        .btn-signup:hover {
+            background-color: #f9f9f9;
+            transform: translateY(-2px);
+        }
+
+        .project-info {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 11px;
+            color: #bbb;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="gateway-card">
+        <div class="logo-section">
+            <a href="index.html" class="logo-link">
+                <div class="logo-icon">⌂</div>
+                <h1>SmartHome System</h1>
+            </a>
+        </div>
+
+        <p class="subtitle">
+            Secure IoT Gateway for Real-Time Energy Monitoring, 
+            Safety Alerts, and Appliance Automation.
+        </p>
+
+        <div class="btn-group">
+            <a href="admin-login.html" class="btn btn-admin">Admin</a>
+
+            <a href="login.html" class="btn btn-login">User Login</a>
+
+            <a href="signup.html" class="btn btn-signup">Register New User</a>
+        </div>
+
+        <div class="project-info">
+            EnTC Final Year Project • AISSMS IOIT
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartHome Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { 
+            --bg-dark: #1a4d4d; 
+            --sidebar-teal: #215151; 
+            --active-link: #2c6b6b;
+            --body-bg: #f4f7f7; 
+            --card-bg: #ffffff;
+            --sidebar-width: 260px;
+            --sidebar-collapsed: 75px;
+            --accent-red: #e74c3c;
+            --status-green: #27ae60;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; background: var(--body-bg); overflow: hidden; }
+        
+        /* Sidebar Layout */
+        aside { 
+            width: var(--sidebar-width); 
+            background: var(--sidebar-teal); 
+            color: white; 
+            display: flex; 
+            flex-direction: column; 
+            transition: width 0.3s ease; 
+            z-index: 100; 
+        }
+        aside.collapsed { width: var(--sidebar-collapsed); }
+
+        .sidebar-header { 
+            padding: 20px; 
+            background: var(--bg-dark); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+        }
+        
+        .logo { font-weight: bold; font-size: 18px; color: #ffffff; white-space: nowrap; }
+        .toggle-btn { background: none; border: none; color: white; cursor: pointer; font-size: 18px; padding: 5px; }
+
+        .nav-links { flex: 1; padding-top: 20px; }
+        aside a { display: flex; align-items: center; padding: 15px 25px; color: #b2c2c2; text-decoration: none; font-size: 15px; cursor: pointer; border-left: 4px solid transparent; }
+        aside a i { width: 25px; font-size: 18px; }
+        aside a:hover, aside a.active { background: var(--active-link); color: white; border-left-color: #5cb8b8; }
+        
+        aside.collapsed .logo-text, aside.collapsed .link-text { display: none; }
+
+        /* Main Content & Header Wrapper */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* Top Admin Profile Header */
+        .top-header {
+            background: white;
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            z-index: 90;
+        }
+
+        .admin-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--bg-dark);
+            font-weight: 600;
+        }
+
+        .role-badge {
+            background: var(--accent-red);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .profile-pic {
+            width: 38px;
+            height: 38px;
+            background: var(--bg-dark);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            border: 2px solid #ddd;
+        }
+
+        main { flex: 1; padding: 30px 40px; overflow-y: auto; }
+
+        .page-content { 
+            background: var(--card-bg); 
+            border-radius: 12px; 
+            padding: 30px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
+            min-height: 70vh; 
+        }
+
+        .logout-container { padding: 20px; }
+        .logout-btn { 
+            width: 100%; padding: 10px; background: none; 
+            border: 1px solid #ff7675; color: #ff7675; 
+            border-radius: 4px; cursor: pointer; font-weight: bold;
+            transition: 0.3s;
+        }
+        .logout-btn:hover { background: #ff7675; color: white; }
+    </style>
+</head>
+<body>
+    <aside id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <span class="logo-text">⌂ SmartHome &nbsp;<i class="fas fa-user-shield"></i></span>
+            </div>
+            <button class="toggle-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+        </div>
+        <nav class="nav-links">
+            <a onclick="loadSection('registry', this)" class="side-link active"><i class="fas fa-users"></i> <span class="link-text"> &nbsp; User Registry</span></a>
+            <a onclick="loadSection('complaints', this)" class="side-link"><i class="fas fa-envelope-open-text"></i> <span class="link-text">User Complaints</span></a>
+        </nav>
+        <div class="logout-container">
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="top-header">
+            <div style="color: #666; font-size: 14px;">
+                Admin Portal / <b id="current-section-name">User Registry</b>
+            </div>
+            <div class="admin-profile">
+                <div style="text-align: right;">
+                    <div style="display: flex; align-items: center; gap: 8px; justify-content: flex-end;">
+                        <span id="admin-display-name" style="font-size: 15px;">Administrator</span>
+                        <span id="user-role-badge" class="role-badge">Admin</span>
+                    </div>
+                    <div style="font-size: 11px; color: var(--status-green); font-weight: 500;">
+                        <i class="fas fa-circle" style="font-size: 8px;"></i> System Online
+                    </div>
+                </div>
+                <div class="profile-pic">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <section class="page-content" id="main-display"></section>
+        </main>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) window.location.href = "admin-login.html";
+
+        /**
+         * Fetch Admin Profile and Role from Database
+         */
+        async function fetchAdminInfo() {
+            try {
+                const res = await fetch('http://localhost:5000/api/user/profile', {
+                    headers: { 'x-auth-token': token }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('admin-display-name').innerText = data.fullName;
+                    // Dynamically set role badge text (e.g., 'admin')
+                    if(data.role) {
+                        document.getElementById('user-role-badge').innerText = data.role;
+                    }
+                }
+            } catch (err) { console.error("Admin sync error"); }
+        }
+
+        function toggleSidebar() { 
+            document.getElementById('sidebar').classList.toggle('collapsed'); 
+        }
+
+        async function loadSection(page, element) {
+            document.querySelectorAll('.side-link').forEach(l => l.classList.remove('active'));
+            if(element) {
+                element.classList.add('active');
+                document.getElementById('current-section-name').innerText = element.querySelector('.link-text').innerText;
+            }
+            
+            try {
+                const res = await fetch(`admin-${page}.html`);
+                const html = await res.text();
+                document.getElementById('main-display').innerHTML = html;
+
+                // Execute scripts in subpages 
+                const scripts = document.getElementById('main-display').querySelectorAll('script');
+                scripts.forEach(s => {
+                    const ns = document.createElement('script');
+                    ns.text = s.text;
+                    document.body.appendChild(ns).parentNode.removeChild(ns);
+                });
+            } catch (e) { document.getElementById('main-display').innerHTML = "Error loading page."; }
+        }
+
+        function logout() { localStorage.clear(); window.location.href = "admin-login.html"; }
+
+        // Initial Load
+        window.onload = () => {
+            fetchAdminInfo();
+            loadSection('registry', document.querySelector('.side-link'));
+        };
+    </script>
+</body>
+</html>

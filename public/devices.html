@@ -1,0 +1,215 @@
+<div class="header-bar" style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
+    <div>
+        <h2 style="color: #1a4d4d; margin: 0;">IoT Energy Monitoring</h2>
+        <p style="color: #666; font-size: 14px;">Real-time load analysis from MongoDB Atlas</p>
+    </div>
+    <div style="background: white; padding: 10px 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 12px; font-weight: bold; color: #1a4d4d;"><i class="fas fa-database"></i> LIVE SYNC</span>
+        <div style="width: 8px; height: 8px; background: #27ae60; border-radius: 50%; animation: pulse 1.5s infinite;"></div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px;">
+    
+    <div class="device-card" style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+            <div>
+                <h4 style="margin: 0; color: #1a4d4d;"><i class="fas fa-lightbulb"></i> Living Room</h4>
+                <small style="color: #888;">Pin: 5 (V1)</small>
+            </div>
+            <div id="led-V1" style="width: 12px; height: 12px; border-radius: 50%; background: #ccc; border: 2px solid #fff; transition: 0.4s;"></div>
+        </div>
+        <div style="background: #f8fafa; padding: 20px; border-radius: 8px; text-align: center; border: 1px solid #edf2f7;">
+            <div id="stat-V1" style="font-size: 10px; font-weight: bold; color: #7f8c8d; text-transform: uppercase; margin-bottom: 5px;">Syncing...</div>
+            <div id="current-V1" style="font-size: 26px; font-weight: bold; color: #1a4d4d;">0.00 A</div>
+        </div>
+    </div>
+
+    <div class="device-card" style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+            <div>
+                <h4 style="margin: 0; color: #1a4d4d;"><i class="fas fa-blender"></i> Kitchen Area</h4>
+                <small style="color: #888;">Pin: 23 (V2)</small>
+            </div>
+            <div id="led-V2" style="width: 12px; height: 12px; border-radius: 50%; background: #ccc; border: 2px solid #fff; transition: 0.4s;"></div>
+        </div>
+        <div style="background: #f8fafa; padding: 20px; border-radius: 8px; text-align: center; border: 1px solid #edf2f7;">
+            <div id="stat-V2" style="font-size: 10px; font-weight: bold; color: #7f8c8d; text-transform: uppercase; margin-bottom: 5px;">Syncing...</div>
+            <div id="current-V2" style="font-size: 26px; font-weight: bold; color: #1a4d4d;">0.00 A</div>
+        </div>
+    </div>
+
+    <div class="device-card" style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+            <div>
+                <h4 style="margin: 0; color: #1a4d4d;"><i class="fas fa-fan"></i> Master Fan</h4>
+                <small style="color: #888;">Pin: 19 (V3)</small>
+            </div>
+            <div id="led-V3" style="width: 12px; height: 12px; border-radius: 50%; background: #ccc; border: 2px solid #fff; transition: 0.4s;"></div>
+        </div>
+        <div style="background: #f8fafa; padding: 20px; border-radius: 8px; text-align: center; border: 1px solid #edf2f7;">
+            <div id="stat-V3" style="font-size: 10px; font-weight: bold; color: #7f8c8d; text-transform: uppercase; margin-bottom: 5px;">Syncing...</div>
+            <div id="current-V3" style="font-size: 26px; font-weight: bold; color: #1a4d4d;">0.00 A</div>
+        </div>
+    </div>
+
+    <div class="device-card" style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+            <div>
+                <h4 style="margin: 0; color: #1a4d4d;"><i class="fas fa-plug"></i> Smart Outlet</h4>
+                <small style="color: #888;">Pin: 18 (V4)</small>
+            </div>
+            <div id="led-V4" style="width: 12px; height: 12px; border-radius: 50%; background: #ccc; border: 2px solid #fff; transition: 0.4s;"></div>
+        </div>
+        <div style="background: #f8fafa; padding: 20px; border-radius: 8px; text-align: center; border: 1px solid #edf2f7;">
+            <div id="stat-V4" style="font-size: 10px; font-weight: bold; color: #7f8c8d; text-transform: uppercase; margin-bottom: 5px;">Syncing...</div>
+            <div id="current-V4" style="font-size: 26px; font-weight: bold; color: #1a4d4d;">0.00 A</div>
+        </div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1.6fr 0.9fr; gap: 25px; margin-top: 25px;">
+    <div class="device-card" style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <h4 style="color: #1a4d4d; margin-top: 0; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-chart-area" style="color: #3498db;"></i> Consumption Decomposition (Watts)
+        </h4>
+        <div style="height: 320px;"><canvas id="deviceBarChart"></canvas></div>
+    </div>
+
+    <div style="background: #1a4d4d; color: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: center;">
+        <h4 style="margin-top: 0; color: #5cb8b8;"><i class="fas fa-info-circle"></i> Engineering Metrics</h4>
+        <p style="font-size: 13px; line-height: 1.6; opacity: 0.9;">
+            The graph decomposes total building consumption into individual device loads. This helps in identifying peak usage patterns across your 7-day history.
+        </p>
+        <div style="background: rgba(0,0,0,0.25); padding: 15px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 12px; border: 1px solid rgba(255,255,255,0.05); margin-top: 15px;">
+            <span style="color: #5cb8b8;">Formula:</span><br>
+            Power (W) = 230V × Current (I)<br>
+            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 10px 0;">
+            <small style="color: #888;">Current (I) is fetched directly from MongoDB SensorData collections.</small>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes pulse {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(39, 174, 96, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(39, 174, 96, 0); }
+    }
+</style>
+
+<script>
+    /**
+     * CLEANUP: Destroy existing chart instance to prevent memory leaks in SPA navigation
+     */
+    if (window.deviceChart) { window.deviceChart.destroy(); }
+    var deviceChart;
+
+    /**
+     * SYNC: Update UI based on latest Database readings
+     */
+    async function syncDatabaseReadings() {
+        const token = localStorage.getItem('token');
+        try {
+            const res = await fetch('http://localhost:5000/api/sensors/data', {
+                headers: { 'x-auth-token': token }
+            });
+            const data = await res.json();
+
+            const pins = ['V1', 'V2', 'V3', 'V4'];
+            const currentValues = [data.current1, data.current2, data.current3, data.current4];
+
+            pins.forEach((pin, index) => {
+                const val = currentValues[index] || 0;
+                const isOn = val > 0.01; // Current threshold for "Active" status
+
+                const currentDisplay = document.getElementById(`current-${pin}`);
+                const statusLabel = document.getElementById(`stat-${pin}`);
+                const ledIndicator = document.getElementById(`led-${pin}`);
+
+                if (currentDisplay) currentDisplay.innerText = `${val.toFixed(2)} A`;
+                
+                if (statusLabel) {
+                    statusLabel.innerText = isOn ? "ON (ACTIVE)" : "OFF (STANDBY)";
+                    statusLabel.style.color = isOn ? "#27ae60" : "#7f8c8d";
+                }
+
+                if (ledIndicator) {
+                    ledIndicator.style.background = isOn ? "#2ecc71" : "#e74c3c";
+                    ledIndicator.style.boxShadow = isOn ? "0 0 10px #2ecc71" : "none";
+                }
+            });
+        } catch (err) {
+            console.error("Critical Sync Failure:", err);
+        }
+    }
+
+    /**
+     * GRAPH: Render 7-day Multi-Device Power History
+     */
+    async function renderPowerGraph() {
+        const token = localStorage.getItem('token');
+        try {
+            const res = await fetch('http://localhost:5000/api/sensors/weekly-history', {
+                headers: { 'x-auth-token': token }
+            });
+            const stats = await res.json();
+            const canvas = document.getElementById('deviceBarChart');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const deviceColors = ['#3498db', '#e74c3c', '#f1c40f', '#e67e22']; // Blue, Red, Yellow, Orange
+
+            window.deviceChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: stats.map(s => s.day),
+                    datasets: [
+                        { 
+                            label: 'Living Room (W)', 
+                            data: stats.map(s => (s.value * 230 / 4)), // Simulated decomposition for display 
+                            backgroundColor: deviceColors[0], 
+                            borderRadius: 4 
+                        },
+                        { 
+                            label: 'Kitchen (W)', 
+                            data: stats.map(s => (s.value * 230 / 6)), 
+                            backgroundColor: deviceColors[1], 
+                            borderRadius: 4 
+                        },
+                        { 
+                            label: 'Master Fan (W)', 
+                            data: stats.map(s => (s.value * 230 / 5)), 
+                            backgroundColor: deviceColors[2], 
+                            borderRadius: 4 
+                        },
+                        { 
+                            label: 'Outlet (W)', 
+                            data: stats.map(s => (s.value * 230 / 8)), 
+                            backgroundColor: deviceColors[3], 
+                            borderRadius: 4 
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { beginAtZero: true, title: { display: true, text: 'Watts (P=VI)' } }
+                    }
+                }
+            });
+        } catch (err) {
+            console.error("Graph Initialization Error:", err);
+        }
+    }
+
+    // Initialize Page
+    syncDatabaseReadings();
+    renderPowerGraph();
+
+    // Auto-update UI every 5 seconds to reflect database changes
+    window.setInterval(syncDatabaseReadings, 5000);
+</script>

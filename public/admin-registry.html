@@ -1,0 +1,91 @@
+<div class="header-bar" style="margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center;">
+    <div>
+        <h2 style="color: #1a4d4d; margin: 0;">Resident Registry</h2>
+        <p style="color: #666; font-size: 14px;">Monitor all registered residents and their linked IoT gateways.</p>
+    </div>
+    <button onclick="loadUsers()" style="background: #1a4d4d; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+        <i class="fas fa-sync-alt"></i> Sync Atlas
+    </button>
+</div>
+
+<div style="background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="text-align: left; background: #f8fafa; color: #1a4d4d; font-size: 12px; text-transform: uppercase; border-bottom: 2px solid #eee;">
+                <th style="padding: 18px 15px;">Name</th>
+                <th style="padding: 18px 15px;">Email</th>
+                <th style="padding: 18px 15px;">Location</th>
+                <th style="padding: 18px 15px;">Blynk Token</th>
+            </tr>
+        </thead>
+        <tbody id="registryBody">
+            <tr>
+                <td colspan="4" style="text-align:center; padding:60px; color: #777;">
+                    <i class="fas fa-spinner fa-spin" style="margin-right: 10px;"></i>Syncing Residents...
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    /**
+     * Fetches user data from the backend and filters for the 'user' role only.
+     */
+    async function loadUsers() {
+        const tbody = document.getElementById('registryBody');
+        const token = localStorage.getItem('token'); // [cite: 1]
+
+        try {
+            const res = await fetch('http://localhost:5000/api/admin/users', {
+                method: 'GET',
+                headers: { 
+                    // Matches the x-auth-token requirement in your auth.js middleware
+                    'x-auth-token': token 
+                }
+            });
+
+            const users = await res.json();
+
+            if (res.ok) {
+                // Filter logic: Only display users where the role is explicitly 'user'
+                const residentsOnly = users.filter(u => u.role === 'user');
+
+                if (residentsOnly.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="4" style="text-align:center; padding:80px; color:#999;">
+                                <i class="fas fa-user-slash" style="font-size: 24px; display:block; margin-bottom:10px;"></i>
+                                No residents found in the database.
+                            </td>
+                        </tr>`;
+                    return;
+                }
+
+                // Render the filtered list
+                tbody.innerHTML = residentsOnly.map(u => `
+                    <tr style="border-bottom: 1px solid #eee; transition: background 0.2s;">
+                        <td style="padding: 15px;">
+                            <span style="font-weight: 600; color: #1a4d4d;">${u.fullName}</span>
+                        </td>
+                        <td style="padding: 15px; color: #555;">${u.email}</td>
+                        <td style="padding: 15px; color: #555;">${u.location || 'Pune'}</td>
+                        <td style="padding: 15px;">
+                            <code style="background: #fff5eb; color: #d35400; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 13px;">
+                                ${u.blynkToken || 'N/A'}
+                            </code>
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = `<tr><td colspan="4" style="color:red; text-align:center; padding:20px;">Error: ${users.msg}</td></tr>`;
+            }
+        } catch (err) {
+            console.error("Registry load error:", err);
+            tbody.innerHTML = `<tr><td colspan="4" style="color:red; text-align:center; padding:20px;">Failed to connect to the server.</td></tr>`;
+        }
+    }
+
+    // Automatically trigger the sync when the subpage is loaded
+    loadUsers();
+</script>

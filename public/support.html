@@ -1,0 +1,113 @@
+<div class="header-bar" style="margin-bottom: 35px; border-bottom: 2px solid #eef2f2; padding-bottom: 15px;">
+    <h1 style="font-size: 26px; color: #1a4d4d; margin: 0; font-weight: 600;">
+        <i class="fas fa-headset" style="margin-right: 10px; color: #3a5f5f;"></i>Support Desk
+    </h1>
+    <p style="color: #777; margin-top: 8px; font-size: 15px;">Need help? Submit a technical ticket or contact our verified hardware suppliers.</p>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 320px; gap: 30px; align-items: start;">
+    
+    <div style="background: white; border-radius: 12px; padding: 35px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid #eef2f2;">
+        <h3 style="color: #1a4d4d; margin-top: 0; margin-bottom: 25px; border-left: 4px solid #3a5f5f; padding-left: 15px;">Raise a Support Ticket</h3>
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; color: #444; font-weight: 600; font-size: 14px;">Issue Category</label>
+            <select id="category" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; background: #fafafa; outline: none; color: #333;">
+                <option value="" disabled selected>Select the type of issue...</option>
+                <option value="Technical Support">Technical Support (Sensors/Gateway)</option>
+                <option value="Energy Monitoring">Energy Monitoring & Analytics</option>
+                <option value="Account & Security">Account & Password Issues</option>
+                <option value="Connectivity">WiFi / Blynk Cloud Connectivity</option>
+            </select>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; color: #444; font-weight: 600; font-size: 14px;">Subject</label>
+            <input type="text" id="subj" placeholder="Briefly describe the problem" 
+                   style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; outline: none;">
+        </div>
+
+        <div style="margin-bottom: 25px;">
+            <label style="display: block; margin-bottom: 8px; color: #444; font-weight: 600; font-size: 14px;">Detailed Description</label>
+            <textarea id="msg" placeholder="Tell us exactly what happened..." 
+                      style="width: 100%; padding: 12px; height: 140px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; outline: none; resize: none;"></textarea>
+        </div>
+
+        <button onclick="send()" id="submitBtn" 
+                style="width: 100%; padding: 15px; background: #1a4d4d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600; transition: 0.3s; box-shadow: 0 4px 10px rgba(26, 77, 77, 0.2);">
+            Submit Request
+        </button>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div style="background: #fdfdfd; border-radius: 12px; padding: 25px; border: 1px solid #eef2f2; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+            <h4 style="color: #1a4d4d; margin-top: 0; margin-bottom: 15px;"><i class="fas fa-id-card" style="margin-right: 8px;"></i>Supplier Contact</h4>
+            
+            <div style="margin-bottom: 18px;">
+                <p style="margin: 0; font-weight: 600; color: #333; font-size: 14px;">IoT Components Pvt Ltd</p>
+                <p style="margin: 4px 0; color: #666; font-size: 13px;"><i class="fas fa-phone-alt"></i> +91 98765 43210</p>
+                <p style="margin: 0; color: #666; font-size: 13px;"><i class="fas fa-envelope"></i> sales@iotcomponents.in</p>
+            </div>
+
+            <div style="padding-top: 15px; border-top: 1px solid #eee;">
+                <p style="margin: 0; font-weight: 600; color: #333; font-size: 14px;">SmartEnergy Solutions</p>
+                <p style="margin: 4px 0; color: #666; font-size: 13px;"><i class="fas fa-phone-alt"></i> +91 20 2440 0000</p>
+                <p style="margin: 0; color: #666; font-size: 13px;"><i class="fas fa-envelope"></i> support@smartenergy.com</p>
+            </div>
+        </div>
+
+        <div style="background: #eef7f7; border-radius: 12px; padding: 20px; border: 1px solid #d1e2e2;">
+            <h4 style="color: #1a4d4d; margin-top: 0; margin-bottom: 10px; font-size: 14px;">Helpful Tip</h4>
+            <p style="font-size: 12px; color: #4b6b6b; line-height: 1.6; margin: 0;">
+                Before submitting, try restarting your IoT Gateway and checking your WiFi signal strength.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function send() {
+        const category = document.getElementById('category').value;
+        const subject = document.getElementById('subj').value;
+        const message = document.getElementById('msg').value;
+        const btn = document.getElementById('submitBtn');
+        const token = localStorage.getItem('token');
+
+        if (!category || !subject || !message) {
+            alert("⚠️ Please fill in all fields.");
+            return;
+        }
+
+        btn.innerText = "Sending Ticket...";
+        btn.disabled = true;
+
+        try {
+            const res = await fetch('http://localhost:5000/api/user/complaint', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'x-auth-token': token 
+                },
+                body: JSON.stringify({ 
+                    subject: `[${category}] ${subject}`, 
+                    message: message 
+                })
+            });
+
+            if (res.ok) {
+                alert("✅ Ticket logged in our database!");
+                document.getElementById('subj').value = "";
+                document.getElementById('msg').value = "";
+                document.getElementById('category').selectedIndex = 0;
+            } else {
+                const errData = await res.json();
+                alert("❌ Error: " + errData.msg);
+            }
+        } catch (err) {
+            alert("❌ Server Connection Error.");
+        } finally {
+            btn.innerText = "Submit Request";
+            btn.disabled = false;
+        }
+    }
+</script>
