@@ -1,0 +1,296 @@
+#define BLYNK_TEMPLATE_ID "TMPL3eoSyuo_7"
+#define BLYNK_TEMPLATE_NAME "AI base Home Automation"
+#define BLYNK_AUTH_TOKEN "Cn6_jZpgfeHRcW1Z8W1uYQI3qDmg4JPz"
+#include <WiFi.h>
+#include <WiFiClient.h>
+#include <BlynkSimpleEsp32.h>
+#include <DHT.h>
+#define DHTPIN 27          // What digital pin we're connected to
+#define DHTTYPE DHT22   // DHT 22, AM2302, AM2321
+#define SENSOR_PIN 4
+DHT dht(DHTPIN, DHTTYPE);
+BlynkTimer timer;
+char ssid[] = "ABCDEFGH";
+char pass[] = "0123456789";
+int automode=1;
+int r1=5;
+int r2=23;
+int r3=19;
+int r4=18;
+int c1=33;
+int c2=32;
+int c3=35;
+int c4=34;
+int currentPins[]={33,32,35,34};
+int gas=26;
+int gasState=0;
+int light_sensor=36;//14;
+int lightState=0;
+
+int pir=14;
+int humanState=0;
+long lightstatestart=0;
+long humanstatestart=0;
+int mVperAmp = 185;           // this the 5A version of the ACS712 -use 100 for 20A Module and 66 for 30A Module
+int Watt = 0;
+const int samples = 1000;
+float calibration_factor = 1; // Set after manual calibration
+int sw4pos=0;
+int switches[]={0,r1,r2,r3,r4};
+int positions[]={0,0,0,0,0};
+double currents[]={0.00,0.00,0.00,0.00,0.00};
+float humidity=0.00;
+float temprature=0.00;
+long lasttime=millis();
+double safelimit=3.00;
+//boolean callf=false;
+void setup() {
+  Serial.begin(115200);
+  pinMode(r3,OUTPUT);
+  pinMode(r1,OUTPUT);
+  pinMode(r2,OUTPUT);
+  pinMode(r4,OUTPUT);
+  digitalWrite(r1,LOW);
+  digitalWrite(r2,LOW);
+  digitalWrite(r3,LOW);
+  digitalWrite(r4,LOW);
+  pinMode(c1,INPUT);
+  pinMode(c2,INPUT);
+  pinMode(c3,INPUT);
+  pinMode(c4,INPUT);
+  pinMode(gas,INPUT);
+  pinMode(light_sensor,INPUT);
+  pinMode(pir,INPUT);
+  Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
+  dht.begin();
+  timer.setInterval(15000L, sendSensor);
+}
+void loop() {
+  Blynk.run();
+  timer.run();
+  delay(100);
+}
+void sendSensor(){
+  humidity = dht.readHumidity();
+  temprature = dht.readTemperature(); // or dht.readTemperature(true) for Fahrenheit
+  if (isnan(humidity) || isnan(temprature)) {
+    humidity=0.00;
+    temprature=0.00;
+  }
+  int lightval=analogRead(light_sensor);
+  Serial.println(lightval);
+  if(lightval < 1000){
+    lightState=0;
+  }else{
+    lightState=1;
+  }
+  humanState=digitalRead(pir); //LOW : No Human & HIGH = Humans are there
+  gasState=digitalRead(gas); 
+  currents[1]=getCurrent1();
+  currents[2]=getCurrent2();
+  currents[3]=getCurrent3();
+  currents[4]=getCurrent4();
+  Serial.print(humanState);
+  Serial.print(" : ");
+  Serial.print(gasState);
+  Serial.print(" : ");
+  Serial.print(lightval);
+  Serial.print(" : ");
+  Serial.print(currents[1]);
+  Serial.print(" : ");
+  Serial.print(currents[2]);
+  Serial.print(" : ");
+  Serial.print(currents[3]);
+  Serial.print(" : ");
+  Serial.println(currents[4]);
+  if(automode==1){
+    implimentAi();
+  }
+  Blynk.virtualWrite(V1,positions[1]);
+  Blynk.virtualWrite(V2,positions[2]);
+  Blynk.virtualWrite(V3,positions[3]);
+  Blynk.virtualWrite(V4,positions[4]);
+  Blynk.virtualWrite(V5, currents[1]);//cu1);
+  Blynk.virtualWrite(V6, currents[2]);//cu2);
+  Blynk.virtualWrite(V7, currents[3]);//cu3);
+  Blynk.virtualWrite(V8, currents[4]);//cu4);
+  Blynk.virtualWrite(V9, getVoltage());
+  Blynk.virtualWrite(V10, temprature);
+  Blynk.virtualWrite(V11, humidity);
+  Blynk.virtualWrite(V12, lightState);
+  Blynk.virtualWrite(V13, humanState);
+  Blynk.virtualWrite(V14, gasState);
+  Blynk.virtualWrite(V0, automode);
+}
+BLYNK_WRITE(V1) {
+  int value = param.asInt(); // Get the value from the app (0 or 1)
+  switchsetup(1,value);
+}
+BLYNK_WRITE(V2) {
+  int value = param.asInt(); // Get the value from the app (0 or 1)
+  switchsetup(2,value);
+}
+BLYNK_WRITE(V3) {
+  int value = param.asInt(); // Get the value from the app (0 or 1)
+  switchsetup(3,value);
+}
+BLYNK_WRITE(V4) {
+  int value = param.asInt(); // Get the value from the app (0 or 1)
+  switchsetup(4,value);
+}
+BLYNK_WRITE(V0) {
+  automode = param.asInt(); // Get the value from the app (0 or 1)
+}
+void switchsetup(int sw,int pos){
+  digitalWrite(switches[sw], pos);
+  positions[sw] = pos;
+}
+double getVoltage(){
+    double maxValue = 0;
+    double minValue = 4095;
+    for (int i = 0; i < samples; i++) {
+      int val = analogRead(SENSOR_PIN);
+      if (val > maxValue) maxValue = val;
+      if (val < minValue) minValue = val;
+    }
+    double peakToPeak = maxValue - minValue;
+    double voltage = (peakToPeak / 2.0) * (3.3 / 4095.0);
+    double acRMS = voltage * 0.707 * calibration_factor;
+    delay(1000);
+    return acRMS;
+}
+
+double getCurrent1(){
+  if(positions[1] == 1){
+    int mx1 = 0;int mn1 = 4096;
+    uint32_t st_tm1 = millis();
+    while((millis()-st_tm1) < 500){ //sample for 1 Sec
+      int rv1 = analogRead(c1);
+      if (rv1 > mx1){mx1 = rv1;}
+      if (rv1 < mn1){mn1 = rv1;}
+    }
+    double vo1 = ((mx1 - mn1) * 3.3)/4096.0; //ESP32 ADC resolution 4096
+    double vr1 = (vo1/2.0) *0.707;   //root 2 is 0.707
+    return ((vr1 * 1000)/mVperAmp);
+  }else{
+    return 0.00;
+  }
+}
+double getCurrent2(){
+  if(positions[2] == 1){
+    int mx2 = 0;int mn2 = 4096;
+    uint32_t st_tm2 = millis();
+    while((millis()-st_tm2) < 500){ //sample for 1 Sec
+      int rv2 = analogRead(c2);
+      if (rv2 > mx2){mx2 = rv2;}
+      if (rv2 < mn2){mn2 = rv2;}
+    }
+    double vo2 = ((mx2 - mn2) * 3.3)/4096.0; //ESP32 ADC resolution 4096
+    double vr2 = (vo2/2.0) *0.707;   //root 2 is 0.707
+    return ((vr2 * 1000)/mVperAmp);
+  }else{
+    return 0.00;
+  }
+}
+double getCurrent3(){
+  if(positions[3] == 1){
+    int mx3 = 0;int mn3 = 4096;
+    uint32_t st_tm3 = millis();
+    while((millis()-st_tm3) < 500){ //sample for 1 Sec
+      int rv3 = analogRead(c3);
+      if (rv3 > mx3){mx3 = rv3;}
+      if (rv3 < mn3){mn3 = rv3;}
+    }
+    double vo3 = ((mx3 - mn3) * 3.3)/4096.0; //ESP32 ADC resolution 4096
+    double vr3 = (vo3/2.0) *0.707;   //root 2 is 0.707
+    return ((vr3 * 1000)/mVperAmp);
+  }else{
+    return 0.00;
+  }
+}
+double getCurrent4(){
+  if(positions[4] == 1){
+    int mx4 = 0;int mn4 = 4096;
+    uint32_t st_tm4 = millis();
+    while((millis()-st_tm4) < 500){ //sample for 1 Sec
+      int rv4 = analogRead(c4);
+      if (rv4 > mx4){mx4 = rv4;}
+      if (rv4 < mn4){mn4 = rv4;}
+    }
+    double vo4 = ((mx4 - mn4) * 3.3)/4096.0; //ESP32 ADC resolution 4096
+    double vr4 = (vo4/2.0) *0.707;   //root 2 is 0.707
+    return ((vr4 * 1000)/mVperAmp);
+  }else{
+    return 0.00;
+  }
+}
+void implimentAi(){
+  //Condition 1
+  //Appliance Auto-OFF on No Occupancy
+  if(humanState==0){
+    if(lightstatestart==0){
+      lightstatestart=millis();
+    }else{
+      if(millis()>lightstatestart+(5*60*1000)){
+        switchsetup(1,0);
+        switchsetup(3,0);
+        switchsetup(2,0);
+        switchsetup(4,0);
+        lightstatestart=0;
+      }
+    }
+  }else{
+       lightstatestart=0;
+  }
+  //Condition 2
+  //Day/Night Lighting Control
+  if(lightState==1){
+      if(positions[1]==1){
+        switchsetup(1,0);
+      }
+      if(positions[2]==1){
+        switchsetup(2,0);
+      } 
+  }else{
+    if(humanState == 1 && positions[1]==0){
+      switchsetup(1,1);
+    }
+  }
+  //Condition 3
+  //Temperature-Based Fan Control
+  if(temprature>15){
+    if(humanState==1){
+      switchsetup(3,1);
+    }else{
+      switchsetup(3,0);
+    }
+  }else{
+       switchsetup(3,0);
+  }
+  //Condition 4
+  //Gas Leakage Protection
+  if(gasState==0){
+    switchsetup(4,1);
+    switchsetup(1,0);
+    switchsetup(2,0);
+    switchsetup(3,0);
+    //Blynk.notify("LPG Leakage,Please Check");
+    Blynk.logEvent("gas_leakage");
+  }else{
+    switchsetup(4,0);
+  }
+//condition 5-6
+//Sudden Overcurrent Protection / High Power Consumtion Protection
+  if(currents[1]>safelimit){
+    switchsetup(1,0);
+  }
+  if(currents[2]>safelimit){
+    switchsetup(2,0);
+  }
+  if(currents[3]>safelimit){
+    switchsetup(3,0);
+  }
+  if(currents[4]>safelimit){
+    switchsetup(4,0);
+  }
+}
